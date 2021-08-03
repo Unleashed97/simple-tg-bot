@@ -115,3 +115,85 @@ bot.onText(new RegExp(`/(.*)`), (msg, [source, match]) =>{
             break
     }
 })
+
+// btn click handler
+bot.on('callback_query', query =>{
+    const {message: { chat, message_id, text }} = query
+
+    switch(query.data){
+        case 'tossTheCoin':
+            //func
+            bot.sendMessage(chat.id, 'Toss the coin');
+            break
+        case 'randomNumber':
+            bot.sendMessage(chat.id, 'random number');
+            break
+        case 'createPassword':
+            bot.editMessageText(`${text}\n\n <b>${menu.password.title}</b>`, {
+                message_id: message_id,
+                chat_id: chat.id,
+                parse_mode: 'HTML',
+                ...menu.password.menu
+            })
+            break
+        case 'pasWeak':
+            bot.sendMessage(chat.id, `Here is your weak password:\n\n ${generatePassword('weak')}`)
+            break
+        case 'pasGood':
+            bot.sendMessage(chat.id, `Here is your good password:\n\n ${generatePassword('good')}`)
+            break;
+        case 'pasStrong':
+            bot.sendMessage(chat.id, `Here is your strong password:\n\n ${generatePassword('strong')}`)
+            break;
+        case 'back':
+            bot.editMessageText(menu.main.title, {
+                message_id: message_id,
+                chat_id: chat.id,
+                ...menu.main.menu
+            })
+            break;
+    }
+})
+
+const LETTERS_CHAR_CODES = createArray(65, 90).concat(createArray(97, 122))
+const NUMBERS_CHAR_CODES = createArray(48, 57)
+const SYMBOLS_CHAR_CODES = createArray(33, 33).concat(createArray(35, 38))
+
+function createArray(first, last){
+    const array = []
+
+    for(let i = first; i<= last; i++){
+        array.push(i)
+    }
+
+    return array
+}
+
+function generatePassword(passwordStrength){
+    let charCodes = []
+    let characterAmount = null;
+    if(passwordStrength === 'weak') {
+        charCodes = LETTERS_CHAR_CODES.concat(NUMBERS_CHAR_CODES)
+        characterAmount = 6
+    }
+    if(passwordStrength === 'good'){
+        charCodes = LETTERS_CHAR_CODES.concat(NUMBERS_CHAR_CODES)
+        characterAmount = 10
+    }
+        
+    if(passwordStrength === 'strong'){
+        charCodes = LETTERS_CHAR_CODES.concat(NUMBERS_CHAR_CODES, SYMBOLS_CHAR_CODES)
+        characterAmount = 15
+    } 
+
+    let passwordCharacters = []
+
+    for(let i =0; i< characterAmount; i++){
+        const characterCode = charCodes[Math.floor(Math.random() * charCodes.length)]
+        passwordCharacters.push(String.fromCharCode(characterCode))
+    }
+
+    return passwordCharacters.join('')
+}
+
+bot.on('polling_error', console.log)
