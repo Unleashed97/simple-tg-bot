@@ -1,5 +1,6 @@
 process.env.NTBA_FIX_319 = 1
 
+const { random } = require('lodash')
 const TelegramBot = require('node-telegram-bot-api')
 const config = require('./config')
 const bot = new TelegramBot(config.token, {polling: true})
@@ -14,7 +15,7 @@ const menu = {
                     [
                         {
                             text: 'Toss the coin',
-                            callback_data: 'TossTheCoin',
+                            callback_data: 'tossTheCoin',
                         }
                     ],
                     [
@@ -122,8 +123,7 @@ bot.on('callback_query', query =>{
 
     switch(query.data){
         case 'tossTheCoin':
-            //func
-            bot.sendMessage(chat.id, 'Toss the coin');
+            bot.sendMessage(chat.id, `Result of tossing the coin: \n\n ${tossTheCoin()}`)
             break
         case 'randomNumber':
             bot.sendMessage(chat.id, 'random number');
@@ -154,6 +154,16 @@ bot.on('callback_query', query =>{
             break;
     }
 })
+
+function getRandomNumber(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function tossTheCoin(){
+    const randomNumber = getRandomNumber(0, 1)
+    if(randomNumber) return 'head'
+    else return 'tail'
+}
 
 const LETTERS_CHAR_CODES = createArray(65, 90).concat(createArray(97, 122))
 const NUMBERS_CHAR_CODES = createArray(48, 57)
