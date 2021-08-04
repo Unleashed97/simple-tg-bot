@@ -34,7 +34,7 @@ const menu = {
                     [
                         {
                             text: 'Set a reminder',
-                            callback_data: 'setReminder',
+                            callback_data: 'reminder',
                         }
                     ],
                 ]
@@ -73,6 +73,33 @@ const menu = {
                 ]
             }
         }
+    },
+    reminder:{
+        title: 'Reminder',
+        menu: {
+            reply_markup: {
+                inline_keyboard:[
+                    [
+                        {
+                            text: 'Add new reminder',
+                            callback_data: 'reminderNew',
+                        }
+                    ],
+                    [
+                        {
+                            text: 'List of reminders',
+                            callback_data: 'reminderList',
+                        }
+                    ],
+                    [
+                        {
+                            text: 'back',
+                            callback_data: 'back',
+                        }
+                    ]
+                ]
+            }
+        }
     }
 }
 
@@ -85,7 +112,7 @@ const command_reminder = 'reminder'
 const command_help = 'help'
 
 // help
-const help_message = 'This bot can do some simple things like tossing the coin (it helps to make a difficult choice), getting the random number in your range, generating the password, also Im gonna add the opportunity of setting of notification.\n\nThere are all avaliable commands:\n\n/start - shows list of features\n/coin - shortcut for tossing the coin\n/random - gives you random number in your range\n/password - generates the password\n/help - help menu';
+const help_message = 'This bot can do some simple things like tossing the coin (it helps to make a difficult choice), getting the random number in your range, generating the password, also Im gonna add the opportunity of setting the reminders.\n\nThere are all avaliable commands:\n\n/start - shows list of features\n/coin - shortcut for tossing the coin\n/random - gives you random number in your range\n/password - generates the password\n/reminder - set a reminder\n/help - help menu';
 
 // commands handler
 bot.onText(new RegExp(`/(.*)`), (msg, [source, match]) =>{
@@ -104,7 +131,7 @@ bot.onText(new RegExp(`/(.*)`), (msg, [source, match]) =>{
             bot.sendMessage(chat.id, `Result of tossing the coin: \n\n ${tossTheCoin()}`)
             break
         case command_random_number:
-            bot.sendMessage(chat.id, 'random number')
+            randomNumber(chat.id)
             break
         case command_reminder:
             bot.sendMessage(chat.id, 'reminder')
@@ -142,17 +169,31 @@ bot.on('callback_query', query =>{
             break
         case 'pasGood':
             bot.sendMessage(chat.id, `Here is your good password:\n\n ${generatePassword('good')}`)
-            break;
+            break
         case 'pasStrong':
             bot.sendMessage(chat.id, `Here is your strong password:\n\n ${generatePassword('strong')}`)
-            break;
+            break
+        case 'reminder':
+            bot.editMessageText(`${text}\n\n<b>${menu.reminder.title}</b>`, {
+                chat_id: chat.id,
+                message_id: message_id,
+                parse_mode: 'HTML',
+                ...menu.reminder.menu,
+                })
+            break
+        case 'reminderNew':
+            createReminder(chat.id)
+            break
+        case 'reminderList':
+            showReminderList(chat.id)
+            break
         case 'back':
             bot.editMessageText(menu.main.title, {
                 message_id: message_id,
                 chat_id: chat.id,
                 ...menu.main.menu
             })
-            break;
+            break
     }
 })
 
@@ -160,6 +201,7 @@ function getRandomNumber(min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
+// random number
 function randomNumber(chatId){
     let flag = false
     bot.sendMessage(chatId, 'Input MIN and MAX values separated by the space like this "1 3".');
@@ -168,10 +210,10 @@ function randomNumber(chatId){
         if(flag === false){
             const [min, max] = msg.text.split(' ')
             if(!min || !max) {
-                bot.sendMessage(chatId,'Input both values in the following format: "number1 number2"')
+                bot.sendMessage(chatId,'Input both values in the following format: "number1 number2".\nTry again: /random')
             }
             else if(Number.isNaN(+min) || Number.isNaN(+max)){
-                bot.sendMessage(chatId, 'There are only numbers allowed')
+                bot.sendMessage(chatId, 'There are only numbers allowed.\nTry again: /random')
             }
             else {
                 const randomNumber = getRandomNumber(+min, +max)
@@ -182,12 +224,15 @@ function randomNumber(chatId){
     })
 }
 
+// tossing the coin
 function tossTheCoin(){
     const randomNumber = getRandomNumber(0, 1)
     if(randomNumber) return 'head'
     else return 'tail'
 }
 
+
+// password
 const LETTERS_CHAR_CODES = createArray(65, 90).concat(createArray(97, 122))
 const NUMBERS_CHAR_CODES = createArray(48, 57)
 const SYMBOLS_CHAR_CODES = createArray(33, 33).concat(createArray(35, 38))
@@ -202,6 +247,7 @@ function createArray(first, last){
     return array
 }
 
+// generatiion of the password
 function generatePassword(passwordStrength){
     let charCodes = []
     let characterAmount = null;
@@ -227,6 +273,14 @@ function generatePassword(passwordStrength){
     }
 
     return passwordCharacters.join('')
+}
+
+// reminder
+const reminders = {}
+
+// creation of reminder
+function createReminder(chatId) {
+    bot.sendMessage(chatId, 'Send me your reminder text and time (E.g: Call mom in 3 hours)')
 }
 
 bot.on('polling_error', console.log)
