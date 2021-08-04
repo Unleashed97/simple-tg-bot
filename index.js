@@ -2,6 +2,7 @@ process.env.NTBA_FIX_319 = 1
 
 const { random } = require('lodash')
 const TelegramBot = require('node-telegram-bot-api')
+const { exitCode } = require('process')
 const config = require('./config')
 const bot = new TelegramBot(config.token, {polling: true})
 
@@ -100,7 +101,7 @@ bot.onText(new RegExp(`/(.*)`), (msg, [source, match]) =>{
             })
             break
         case command_toss_coin:
-            bot.sendMessage(chat.id, 'toss the coin')
+            bot.sendMessage(chat.id, `Result of tossing the coin: \n\n ${tossTheCoin()}`)
             break
         case command_random_number:
             bot.sendMessage(chat.id, 'random number')
@@ -126,7 +127,7 @@ bot.on('callback_query', query =>{
             bot.sendMessage(chat.id, `Result of tossing the coin: \n\n ${tossTheCoin()}`)
             break
         case 'randomNumber':
-            bot.sendMessage(chat.id, 'random number');
+            randomNumber(chat.id)
             break
         case 'createPassword':
             bot.editMessageText(`${text}\n\n <b>${menu.password.title}</b>`, {
@@ -157,6 +158,28 @@ bot.on('callback_query', query =>{
 
 function getRandomNumber(min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function randomNumber(chatId){
+    let flag = false
+    bot.sendMessage(chatId, 'Input MIN and MAX values separated by the space like this "1 3".');
+    
+    bot.on('message', msg =>{
+        if(flag === false){
+            const [min, max] = msg.text.split(' ')
+            if(!min || !max) {
+                bot.sendMessage(chatId,'Input both values in the following format: "number1 number2"')
+            }
+            else if(Number.isNaN(+min) || Number.isNaN(+max)){
+                bot.sendMessage(chatId, 'There are only numbers allowed')
+            }
+            else {
+                const randomNumber = getRandomNumber(+min, +max)
+                bot.sendMessage(chatId, `Here is your random number:\n\n ${randomNumber}`)
+            }
+            flag = true
+        }
+    })
 }
 
 function tossTheCoin(){
