@@ -4,7 +4,16 @@ const TelegramBot = require('node-telegram-bot-api')
 
 const token = process.env.TOKEN
 
-const bot = new TelegramBot(token, {polling: true})
+let bot
+
+if(process.env.NODE_ENV === 'production'){
+    bot = new TelegramBot(token)
+    bot.setWebHook(provess.env.HEROKU_URL + bot.token)
+}else{
+    bot = new TelegramBot(token, {polling: true})
+}
+
+console.log(`Bot server started in the ${process.env.NODE_ENV} mode`)
 
 // menu
 const menu = {
