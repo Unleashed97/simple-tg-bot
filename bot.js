@@ -1,5 +1,6 @@
 process.env.NTBA_FIX_319 = 1
 
+const { default: axios } = require('axios')
 const TelegramBot = require('node-telegram-bot-api')
 
 const token = process.env.TOKEN
@@ -46,6 +47,12 @@ const menu = {
                             callback_data: 'reminder',
                         }
                     ],
+                    [
+                        {
+                            text: 'Currency Rate',
+                            callback_data: 'currencyRate',
+                        }
+                    ]
                 ]
             }
         }
@@ -117,6 +124,7 @@ const command_start = 'start'
 const command_password = 'password'
 const command_toss_coin = 'coin'
 const command_random_number = 'random'
+const command_currency = 'currency'
 const command_reminder = 'reminder'
 const command_help = 'help'
 
@@ -147,6 +155,9 @@ bot.onText(new RegExp(`/(.*)`), (msg, [source, match]) =>{
             break
         case command_help:
             bot.sendMessage(chat.id, help_message)
+            break
+        case command_currency:
+            getCurrencyRate(chat.id)
             break
         default:
             bot.sendMessage(chat.id, 'Sorry, bot doesnt know this command, try one more or use /help command')
@@ -181,6 +192,9 @@ bot.on('callback_query', query =>{
             break
         case 'pasStrong':
             bot.sendMessage(chat.id, `Here is your strong password:\n\n ${generatePassword('strong')}`)
+            break
+        case 'currencyRate':
+            getCurrencyRate(chat.id)
             break
         case 'reminder':
             bot.editMessageText(`${text}\n\n<b>${menu.reminder.title}</b>`, {
@@ -282,6 +296,22 @@ function generatePassword(passwordStrength){
     }
 
     return passwordCharacters.join('')
+}
+
+// currency rate
+function getCurrencyRate(chatId){
+    axios.get('https://www.cbr-xml-daily.ru/daily_json.js').then(response =>{
+        let usd = response.data.Valute.USD.Value
+        let euro = response.data.Valute.EUR.Value
+
+        let usdChange = usd - response.data.Valute.USD.Previous
+        let euroChange = euro - response.data.Valute.EUR.Previous
+
+        bot.sendMessage(chatId, `Exchange rate: \n\n <b>USD: ${usd.toFixed(2)}(${usdChange.toFixed(3)})\n EURO: ${euro.toFixed(2)}(${euroChange.toFixed(3)})</b>`, {parse_mode: 'HTML'})
+    }).catch(error =>{
+        bot.sendMessage(chatId, 'This feature doesnt available now, please, try again later')
+    })
+    
 }
 
 // reminder
