@@ -128,6 +128,18 @@ const command_currency = 'currency'
 const command_reminder = 'reminder'
 const command_help = 'help'
 
+// set commands
+
+bot.setMyCommands([
+    {command: '/start', description: 'Main menu'},
+    {command: '/help', description: 'List of avaliable commands'},
+    {command: '/coin', description: 'Toss the coin'},
+    {command: '/random', description: 'Get random number in your range'},
+    {command: '/password', description: 'Password menu'},
+    {command: '/reminder', description: 'Reminder menu'},
+    {command: '/currency', description: 'Show currency rate USD and EURO'}
+])
+
 // help
 const help_message = 'This bot can do some simple things like tossing the coin (it helps to make a difficult choice), getting the random number in your range, generating the password, also Im gonna add the opportunity of setting the reminders.\n\nThere are all avaliable commands:\n\n/start - shows list of features\n/coin - shortcut for tossing the coin\n/random - gives you random number in your range\n/password - generates the password\n/reminder - set a reminder\n/help - help menu';
 
